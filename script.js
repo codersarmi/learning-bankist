@@ -73,11 +73,25 @@ const createUserName = function (accs) {
 };
 createUserName(accounts);
 
+const UpdateUI = function () {
+  //Calculate and Display Current Balane
+  calcDisplayBalance(currentAccounts);
+
+  //Calculate and Display Current Summary
+  calcDisplaySummary(currentAccounts);
+
+  //Calculate and Display Transaction
+  displayMovements(currentAccounts);
+};
+
 // Display Transaction
-const displayMovements = function (currentAccounts) {
+const displayMovements = function (currentAccounts, sort = false) {
   // const movements = account1.movements;
   containerMovements.innerHTML = '';
-  currentAccounts.movements.forEach(function (mov, i) {
+  const movement = sort
+    ? currentAccounts.movements.slice().sort((a, b) => a - b)
+    : currentAccounts.movements;
+  movement.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const html = `
     <div class="movements__row">
@@ -93,11 +107,11 @@ const displayMovements = function (currentAccounts) {
 
 // Calculate Display Balance
 const calcDisplayBalance = function (currentAccounts) {
-  const balance = currentAccounts.movements.reduce(
+  currentAccounts.balance = currentAccounts.movements.reduce(
     (accr, mov) => accr + mov,
     0
   );
-  labelBalance.textContent = `${balance} €`;
+  labelBalance.textContent = `${currentAccounts.balance} €`;
 };
 
 // Calculate Summary Balance
@@ -123,7 +137,8 @@ const calcDisplaySummary = function (currentAccounts) {
   labelSumInterest.textContent = `${Math.abs(interest)}`;
 };
 
-// Event Handler
+// App Event Handler
+// Log in Feature
 let currentAccounts;
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
@@ -137,149 +152,83 @@ btnLogin.addEventListener('click', function (e) {
     ${currentAccounts.owner.split(' ')[0]}`;
   }
 
-  //Calculate and Display Current Balane
-  calcDisplayBalance(currentAccounts);
+  UpdateUI();
 
-  //Calculate and Display Current Summary
-  calcDisplaySummary(currentAccounts);
-
-  //Calculate and Display Transaction
-  displayMovements(currentAccounts);
-
+  // Clear Content Log In
   inputLoginUsername.value = inputLoginPin.value = '';
   inputLoginPin.blur();
 });
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
 
-const currencies = new Map([
-  ['USD', 'United States dollar'],
-  ['EUR', 'Euro'],
-  ['GBP', 'Pound sterling'],
-]);
+// Transfer Feature
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const receiveAcc = accounts.find(
+    acc => acc.userName === inputTransferTo.value
+  );
+  const amount = Number(inputTransferAmount.value);
+  if (
+    amount <= currentAccounts.balance &&
+    amount > 0 &&
+    receiveAcc.userName !== currentAccounts.userName
+  ) {
+    currentAccounts.movements.push(-amount);
+    receiveAcc.movements.push(amount);
 
-/////////////////////////////////////////////////
+    // UpdateUI
+    UpdateUI();
 
-// Coding Challenge 1
-// const dogJulia = [3, 5, 2, 12, 7];
-// const dogKate = [4, 1, 15, 8, 3];
-// dogJulia = [9,16,6,8,3];
-// dogKate = [10,5,6,1,4];
+    // Clear Content Transfer
+    inputTransferTo.value = inputTransferAmount.value = '';
+    inputTransferAmount.blur();
+  }
+});
 
-// const checkDogs = function (dogJulia, dogKate) {
-//   const i = dogJulia.slice();
-//   i.splice(0, 1);
-//   i.splice(-2);
-//   console.log(i);
-//   const dogs = i.concat(dogKate);
-//   console.log(dogs);
-//   dogs.forEach(function (d, i) {
-//     const displaydog =
-//       d > 3
-//         ? `Dog number ${i + 1} is an adult,and is ${d} years old`
-//         : `Dog number ${i + 1} is still a puppy`;
-//     console.log(displaydog);
-//   });
-// };
+// Loan Feature
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputLoanAmount.value);
+  if (
+    amount > 0 &&
+    currentAccounts.movements.some(mov => mov >= amount * 0.1)
+  ) {
+    currentAccounts.movements.push(amount);
 
-// checkDogs([3, 5, 2, 12, 7], [4, 1, 15, 8, 3]);
-// console.log('=============================================');
-// checkDogs([9, 16, 6, 8, 3], [10, 5, 6, 1, 4]);
+    // UpdateUI
+    UpdateUI();
 
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-// const eurToUSD = 1.1;
-// // const movementUSD = movements.map(function (mov) {
-// //   return mov * eurToUSD;
-// // });
+    // Clear Content Transfer
+    inputLoanAmount.value = '';
+    inputLoanAmount.blur();
+  }
+});
 
-// // console.log(movementUSD);
+// Sorting Feature
+let sorted = false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  displayMovements(currentAccounts, !sorted);
+  sorted = !sorted;
+});
 
-// const movementUSD = movements.map((mov, i) => {
-//   const type = mov > 0 ? 'Deposit' : 'Withdrawl';
-//   return `${i + 1} Your ${type} is ${Math.abs(mov)}`;
-// });
-// console.log(movementUSD);
+// Close Account Feature
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  if (
+    inputCloseUsername.value === currentAccounts.userName &&
+    Number(inputClosePin.value) === currentAccounts.pin
+  ) {
+    // Close UI
+    containerApp.style.opacity = 0;
+    const index = accounts.findIndex(
+      acc => acc.userName === currentAccounts.userName
+    );
+    accounts.splice(index, 1);
+  }
+});
 
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-// const deposit = movements.filter(function (mov) {
-//   return mov > 0;
-// });
-// console.log(deposit);
-
-// const withdraw = movements.filter(function (mov) {
-//   return mov < 0;
-// });
-// console.log(withdraw);
-
-// const depositForOf = [];
-// const withdrawForOf = [];
-
-// for (const mov of movements) {
-//   if (mov > 0) {
-//     depositForOf.push(mov);
-//   } else {
-//     withdrawForOf.push(mov);
-//   }
-// }
-// console.log(depositForOf, withdrawForOf);
-
-// const reducer = movements.reduce(function (acc, mov) {
-//   return acc + mov;
-// }, 0);
-// console.log(reducer);
-
-// const reducers = movements.reduce((acc, mov) => acc + mov, 0);
-// console.log(reducers);
-
-// let initialValue = 0;
-// for (const mov of movements) {
-//   initialValue += mov;
-// }
-// console.log(initialValue);
-
-// const dogage1 = [5, 2, 4, 1, 15, 8, 3];
-// const dogage2 = [16, 6, 10, 5, 6, 1, 4];
-
-// const calcAverageHumanAge = function (ages) {
-//   const humanAge = ages.map(age => (age >= 2 ? 16 + age * 4 : 2 * age));
-
-//   const excludeHumanAge = humanAge.filter(exclude => exclude >= 18);
-
-//   const averageHumanAge = excludeHumanAge.reduce(
-//     (accr, avg, _, arr) => accr + avg / arr.length - 1,
-//     0
-//   );
-
-//   console.log(humanAge);
-//   console.log(excludeHumanAge);
-//   console.log(averageHumanAge);
-// };
-
-// calcAverageHumanAge(dogage1);
-// calcAverageHumanAge(dogage2);
-
-// Coding Challenge - 3
-// const dogage1 = [5, 2, 4, 1, 15, 8, 3];
-// const dogage2 = [16, 6, 10, 5, 6, 1, 4];
-
-// const calcAverageHumanAge = function (ages) {
-//   const humanAges = ages.map(age => (age >= 2 ? 16 + age * 4 : 2 * age));
-
-//   const humanAge = ages.map(age => age >= 2);
-
-//   const excludeHumanAge = humanAge.filter(exclude => exclude >= 18);
-
-//   const averageHumanAge = excludeHumanAge.reduce(
-//     (accr, avg, _, arr) => accr + avg / arr.length - 1,
-//     0
-//   );
-
-//   console.log(humanAge);
-//   console.log(excludeHumanAge);
-//   console.log(averageHumanAge);
-// };
-
-// calcAverageHumanAge(dogage1);
-// calcAverageHumanAge(dogage2);
+// For Admin Panel
+// Total Accounts Balance
+const totalBalanceChaining = accounts
+  .flatMap(mov => mov.movements)
+  .reduce((accr, mov) => accr + mov, 0);
+console.log(totalBalanceChaining);

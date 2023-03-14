@@ -98,7 +98,7 @@ const displayMovements = function (currentAccounts, sort = false) {
       <div class="movements__type movements__type--${type}">
       ${i + 1} ${type}</div>
       <div class="movements__date">3 days ago</div>
-      <div class="movements__value">${mov}€</div>
+      <div class="movements__value">${mov.toFixed(2)}€</div>
     </div>
     `;
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -111,7 +111,7 @@ const calcDisplayBalance = function (currentAccounts) {
     (accr, mov) => accr + mov,
     0
   );
-  labelBalance.textContent = `${currentAccounts.balance} €`;
+  labelBalance.textContent = `${currentAccounts.balance.toFixed(2)} €`;
 };
 
 // Calculate Summary Balance
@@ -120,13 +120,13 @@ const calcDisplaySummary = function (currentAccounts) {
   const income = currentAccounts.movements
     .filter(mov => mov > 0)
     .reduce((accr, mov) => accr + mov, 0);
-  labelSumIn.textContent = income;
+  labelSumIn.textContent = income.toFixed(2);
 
   // Calculate Outcome Balance
   const outcome = currentAccounts.movements
     .filter(mov => mov < 0)
     .reduce((accr, mov) => accr + mov, 0);
-  labelSumOut.textContent = `${Math.abs(outcome)}`;
+  labelSumOut.textContent = `${Math.abs(outcome.toFixed(2))}`;
 
   // Calculate Interest Balance
   const interest = currentAccounts.movements
@@ -134,7 +134,7 @@ const calcDisplaySummary = function (currentAccounts) {
     .map(int => (int * currentAccounts.interestRate) / 100)
     .filter(int => int > 0)
     .reduce((accr, int) => accr + int, 0);
-  labelSumInterest.textContent = `${Math.abs(interest)}`;
+  labelSumInterest.textContent = `${Math.abs(interest.toFixed(2))}`;
 };
 
 // App Event Handler
@@ -145,7 +145,7 @@ btnLogin.addEventListener('click', function (e) {
   currentAccounts = accounts.find(
     acc => acc.userName === inputLoginUsername.value
   );
-  if (currentAccounts?.pin === Number(inputLoginPin.value)) {
+  if (currentAccounts?.pin === +inputLoginPin.value) {
     containerApp.style.opacity = 100;
     //Display Welcome
     labelWelcome.textContent = `Welcome Back 
@@ -165,7 +165,7 @@ btnTransfer.addEventListener('click', function (e) {
   const receiveAcc = accounts.find(
     acc => acc.userName === inputTransferTo.value
   );
-  const amount = Number(inputTransferAmount.value);
+  const amount = +inputTransferAmount.value;
   if (
     amount <= currentAccounts.balance &&
     amount > 0 &&
@@ -186,7 +186,7 @@ btnTransfer.addEventListener('click', function (e) {
 // Loan Feature
 btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
-  const amount = Number(inputLoanAmount.value);
+  const amount = Math.floor(inputLoanAmount.value);
   if (
     amount > 0 &&
     currentAccounts.movements.some(mov => mov >= amount * 0.1)
@@ -215,7 +215,7 @@ btnClose.addEventListener('click', function (e) {
   e.preventDefault();
   if (
     inputCloseUsername.value === currentAccounts.userName &&
-    Number(inputClosePin.value) === currentAccounts.pin
+    +inputClosePin.value === currentAccounts.pin
   ) {
     // Close UI
     containerApp.style.opacity = 0;
